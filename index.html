@@ -855,19 +855,24 @@
 
     riskSignals.forEach(function(signal){
       var dec = decimalsFor(signal.id);
+
+      // Look up all elements up front (not inside the try block) so that
+      // both the success path and the error/awaiting-input paths can
+      // update the SAME persistent DOM nodes — never replacing innerHTML,
+      // so a card can always recover once inputs become valid again.
+      var badge   = document.getElementById('rc-badge-' + signal.id);
+      var noteEl  = document.getElementById('rc-note-' + signal.id);
+      var reasonEl= document.getElementById('rc-reason-' + signal.id);
+      var execBtn = document.getElementById('rc-exec-' + signal.id);
+      var sizeEl  = document.getElementById('rc-size-' + signal.id);
+      var stopEl  = document.getElementById('rc-stop-' + signal.id);
+      var tpEl    = document.getElementById('rc-tp-' + signal.id);
+      var heatEl  = document.getElementById('rc-heat-' + signal.id);
+
       try {
         var result = process_post_signal_risk(signal, settings, cumulativeHeat);
         cumulativeHeat = result.newHeat;
         evaluatedCount++;
-
-        var badge   = document.getElementById('rc-badge-' + signal.id);
-        var noteEl  = document.getElementById('rc-note-' + signal.id);
-        var reasonEl= document.getElementById('rc-reason-' + signal.id);
-        var execBtn = document.getElementById('rc-exec-' + signal.id);
-        var sizeEl  = document.getElementById('rc-size-' + signal.id);
-        var stopEl  = document.getElementById('rc-stop-' + signal.id);
-        var tpEl    = document.getElementById('rc-tp-' + signal.id);
-        var heatEl  = document.getElementById('rc-heat-' + signal.id);
 
         if (sizeEl) {
           var lotInfo = toLots(signal, result.positionSizeUnits);
@@ -897,26 +902,25 @@
         wireExecuteButton(signal.id);
 
       } catch (err) {
-        var card = document.getElementById('riskcard-' + signal.id);
+        if (sizeEl) { sizeEl.textContent = '–'; sizeEl.title = ''; }
+        if (stopEl) stopEl.textContent = '–';
+        if (tpEl)   tpEl.textContent   = '–';
+        if (heatEl) heatEl.textContent = '–';
+        if (execBtn) execBtn.disabled = true;
+
         if (err && err.awaitingInput) {
           anyAwaitingInput = true;
-          if (card) {
-            card.innerHTML =
-              '<div class="riskcard-head"><div class="riskcard-title">🛡️ RISK MANAGEMENT EVALUATION</div>' +
-              '<span class="rc-badge pending">AWAITING INPUT</span></div>' +
-              '<div class="rc-note">' + err.message +
-              '. This does not affect the signal or trade idea above — those are shown as originally generated. Fill in the Risk Management Engine settings above to see sizing for ' + signal.symbol + '.</div>';
-          }
+          if (badge) { badge.textContent = 'AWAITING INPUT'; badge.className = 'rc-badge pending'; }
+          if (reasonEl) reasonEl.style.display = 'none';
+          if (noteEl) noteEl.textContent = err.message + '. This does not affect the signal or trade idea above — those are shown as originally generated.';
         } else {
           anyError = true;
-          if (card) {
-            card.innerHTML =
-              '<div class="riskcard-head"><div class="riskcard-title">🛡️ RISK MANAGEMENT EVALUATION</div>' +
-              '<span class="rc-badge blocked">✗ ENGINE ERROR</span></div>' +
-              '<div class="rc-error">Risk engine unavailable for ' + signal.symbol + ' (' +
-              (err && err.message ? err.message : 'calculation error') +
-              '). This does not affect the signal or trade idea above — those are shown as originally generated.</div>';
+          if (badge) { badge.textContent = '✗ ENGINE ERROR'; badge.className = 'rc-badge blocked'; }
+          if (reasonEl) {
+            reasonEl.style.display = 'block';
+            reasonEl.textContent = 'Risk engine unavailable for ' + signal.symbol + ' (' + (err && err.message ? err.message : 'calculation error') + ').';
           }
+          if (noteEl) noteEl.textContent = 'This does not affect the signal or trade idea above — those are shown as originally generated.';
         }
       }
     });
