@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Trading Signals — Technical + Fundamental</title>
+<style>
+  :root{
+    color-scheme: light;
+    --bull-bg:#dcfce7; --bull-text:#15803d; --bull-border:#22c55e;
+    --neu-bg:#fef3c7; --neu-text:#b45309; --neu-border:#f59e0b;
+    --bear-bg:#fee2e2; --bear-text:#b91c1c; --bear-border:#ef4444;
+    --ink:#1f2330; --sub:#5b6172; --line:#e5e7eb;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; padding:24px 16px 48px;
+    background:#f4f5f9;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);
+  }
+  .wrap{max-width:920px;margin:0 auto;}
+
+  /* Banner */
+  .banner{
+    background:linear-gradient(135deg,#2e1065 0%,#86198f 55%,#db2777 100%);
+    border-radius:20px;
+    padding:26px 28px 22px;
+    color:#fff;
+    box-shadow:0 10px 30px rgba(88,28,135,.25);
+  }
+  .banner h1{margin:0 0 4px;font-size:23px;font-weight:800;display:flex;align-items:center;gap:8px;}
+  .banner .sub{margin:0 0 16px;font-size:13.5px;color:rgba(255,255,255,.85);}
+  .runbox{
+    background:rgba(0,0,0,.22);
+    border:1px solid rgba(255,255,255,.15);
+    border-radius:12px;
+    padding:10px 16px;
+    margin-bottom:16px;
+    font-size:13px;
+  }
+  .runbox .l1{font-weight:700;}
+  .runbox .l2{color:rgba(255,255,255,.8);margin-top:3px;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{
+    background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.25);
+    border-radius:999px;
+    padding:7px 13px;
+    font-size:12.5px;
+    font-weight:600;
+    display:flex;align-items:center;gap:6px;
+    white-space:nowrap;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none;}
+  .dot.bull{background:#4ade80;}
+  .dot.neu{background:#fbbf24;}
+  .dot.bear{background:#f87171;}
+
+  /* Disclaimer */
+  .disclaimer{
+    background:#fffbeb;
+    border:1px solid #fde68a;
+    border-radius:14px;
+    padding:14px 18px;
+    margin-top:16px;
+    font-size:12.5px;
+    line-height:1.6;
+    color:#78450a;
+  }
+
+  /* Generic card */
+  .card{
+    background:#fff;
+    border-radius:16px;
+    box-shadow:0 1px 3px rgba(16,24,40,.06), 0 1px 2px rgba(16,24,40,.04);
+    padding:20px 22px;
+    margin-top:18px;
+  }
+  .card h2{
+    margin:0 0 14px;
+    font-size:14.5px;
+    letter-spacing:.02em;
+    color:#4c1d95;
+    display:flex;align-items:center;gap:8px;
+  }
+  .macro-item{
+    border-left:4px solid #94a3b8;
+    padding:8px 0 8px 14px;
+    margin-bottom:10px;
+    font-size:13.5px;
+    line-height:1.6;
+    color:#374151;
+  }
+  .macro-item:last-child{margin-bottom:0;}
+  .macro-item b{color:var(--ink);}
+  .m-fed{border-color:#3b82f6;}
+  .m-rba{border-color:#22c55e;}
+  .m-boc{border-color:#ef4444;}
+  .m-boj{border-color:#ec4899;}
+  .m-eq{border-color:#f59e0b;}
+
+  /* Instrument card */
+  .instrument{
+    background:#fff;
+    border-radius:16px;
+    box-shadow:0 1px 3px rgba(16,24,40,.06), 0 1px 2px rgba(16,24,40,.04);
+    margin-top:20px;
+    overflow:hidden;
+    border-top:5px solid #94a3b8;
+  }
+  .instrument.bull{border-top-color:var(--bull-border);}
+  .instrument.neu{border-top-color:var(--neu-border);}
+  .instrument.bear{border-top-color:var(--bear-border);}
+  .instrument .inner{padding:20px 22px 22px;}
+  .ihead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .ihead-left{display:flex;align-items:center;gap:12px;}
+  .icon-circ{
+    width:46px;height:46px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;background:#f1f5f9;flex:none;
+  }
+  .iname{font-size:17px;font-weight:800;margin:0;}
+  .isub{font-size:12.5px;color:var(--sub);margin:1px 0 0;}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .badge{
+    border-radius:999px;padding:6px 13px;font-size:12px;font-weight:800;
+    letter-spacing:.02em; white-space:nowrap;
+  }
+  .badge.bull{background:var(--bull-bg);color:var(--bull-text);}
+  .badge.neu{background:var(--neu-bg);color:var(--neu-text);}
+  .badge.bear{background:var(--bear-bg);color:var(--bear-text);}
+  .badge.conv{background:#f1f5f9;color:#475569;}
+
+  .pricebox{
+    background:#f8fafc;border:1px solid var(--line);border-radius:10px;
+    padding:11px 14px;margin-top:14px;font-size:13px;color:#374151;line-height:1.55;
+  }
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
+  @media(max-width:640px){.cols{grid-template-columns:1fr;}}
+  .colbox{border:1px solid var(--line);border-radius:10px;padding:12px 14px;}
+  .colbox h3{
+    margin:0 0 8px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    color:#6b7280;font-weight:800;display:flex;align-items:center;gap:6px;
+  }
+  .colbox ul{margin:0;padding-left:18px;}
+  .colbox li{font-size:13px;line-height:1.55;margin-bottom:7px;color:#374151;}
+  .colbox li:last-child{margin-bottom:0;}
+
+  .explain{
+    background:#f5f3ff;border-radius:10px;padding:14px 16px;margin-top:14px;
+    font-size:13.5px;line-height:1.65;color:#312e57;
+  }
+
+  .confluence{
+    background:#faf5ff;border:1px solid #e9d5ff;border-radius:12px;
+    padding:14px 16px;margin-top:14px;
+  }
+  .conf-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+  .conf-title{font-size:12.5px;font-weight:800;color:#7e22ce;display:flex;align-items:center;gap:6px;}
+  .conf-meter{display:flex;align-items:center;gap:10px;}
+  .conf-dots{display:flex;gap:4px;}
+  .conf-dots span{width:9px;height:9px;border-radius:50%;background:#e9d5ff;display:inline-block;}
+  .conf-dots span.on{background:#a855f7;}
+  .conf-score{background:#a855f7;color:#fff;font-size:11.5px;font-weight:800;border-radius:999px;padding:3px 10px;}
+  .conf-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  @media(max-width:640px){.conf-grid{grid-template-columns:1fr;}}
+  .conf-item{
+    background:#fff;border:1px solid #f1e3fb;border-radius:8px;padding:8px 10px;
+    font-size:12.5px;line-height:1.5;display:flex;gap:7px;color:#374151;
+  }
+  .conf-item .ic{flex:none;font-weight:900;}
+  .conf-item .ic.yes{color:#16a34a;}
+  .conf-item .ic.no{color:#dc2626;}
+  .conf-item .ic.na{color:#9ca3af;}
+  .conf-note{font-style:italic;color:#6b21a8;font-size:12.5px;line-height:1.6;margin-top:10px;}
+  .conf-reminder{font-style:italic;color:#6b7280;font-size:11.5px;line-height:1.6;margin-top:8px;}
+
+  .flip{
+    background:#eff6ff;border:1px dashed #bfdbfe;border-radius:10px;
+    padding:11px 14px;margin-top:14px;font-size:12.5px;line-height:1.6;color:#1e3a8a;
+  }
+
+  .trade{
+    background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;
+    padding:14px 16px;margin-top:14px;
+  }
+  .trade-title{font-size:12.5px;font-weight:800;color:#3730a3;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+  .trade-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+  @media(max-width:760px){.trade-grid{grid-template-columns:repeat(2,1fr);}}
+  .trade-cell{background:#fff;border:1px solid #dbe1fb;border-radius:8px;padding:9px 10px;}
+  .trade-cell .tl{font-size:10px;font-weight:800;color:#4338ca;letter-spacing:.03em;margin-bottom:4px;display:flex;align-items:center;gap:4px;}
+  .trade-cell .tv{font-size:12.5px;color:#1f2330;line-height:1.4;}
+  .trade-note{font-size:12px;line-height:1.6;color:#312e81;margin-top:10px;}
+
+  .footer{
+    margin-top:26px;padding-top:18px;border-top:1px solid var(--line);
+    font-size:11.5px;line-height:1.7;color:#6b7280;
+  }
+
+  /* Risk Management Engine (post-signal layer) */
+  .risk-settings{
+    background:#0f172a;color:#e2e8f0;border-radius:16px;padding:18px 20px;margin-top:18px;
+    box-shadow:0 1px 3px rgba(16,24,40,.06);
+  }
+  .risk-settings h2{margin:0 0 4px;font-size:14.5px;color:#93c5fd;display:flex;align-items:center;gap:8px;}
+  .risk-settings .rs-sub{font-size:12px;color:#94a3b8;margin:0 0 14px;line-height:1.6;}
+  .rs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  @media(max-width:700px){.rs-grid{grid-template-columns:repeat(2,1fr);}}
+  .rs-field label{display:block;font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#93c5fd;margin-bottom:5px;}
+  .rs-field input{
+    width:100%;background:#1e293b;border:1px solid #334155;color:#f1f5f9;
+    border-radius:8px;padding:8px 10px;font-size:13px;
+  }
+  .rs-field input:focus{outline:2px solid #6366f1;}
+  .rs-summary{
+    margin-top:14px;padding-top:12px;border-top:1px solid #1e293b;
+    display:flex;flex-wrap:wrap;gap:18px;align-items:center;font-size:12px;color:#cbd5e1;
+  }
+  .rs-summary b{color:#fff;}
+  .heat-bar{width:140px;height:8px;background:#1e293b;border-radius:99px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:8px;}
+  .heat-bar-fill{height:100%;background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444);display:block;}
+
+  .riskcard{
+    background:#f8fafc;border:1px solid #cbd5e1;border-radius:12px;
+    padding:14px 16px;margin-top:12px;
+  }
+  .riskcard-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+  .riskcard-title{font-size:12.5px;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:6px;}
+  .rc-badge{border-radius:999px;padding:5px 12px;font-size:11px;font-weight:800;letter-spacing:.03em;}
+  .rc-badge.approved{background:var(--bull-bg);color:var(--bull-text);}
+  .rc-badge.blocked{background:var(--bear-bg);color:var(--bear-text);}
+  .rc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  @media(max-width:760px){.rc-grid{grid-template-columns:repeat(2,1fr);}}
+  .rc-cell{background:#fff;border:1px solid var(--line);border-radius:8px;padding:9px 10px;}
+  .rc-cell .rl{font-size:9.5px;font-weight:800;color:#475569;letter-spacing:.03em;margin-bottom:4px;}
+  .rc-cell .rv{font-size:12.5px;color:#0f172a;font-weight:700;line-height:1.4;}
+  .rc-note{font-size:11.5px;line-height:1.6;color:#475569;margin-top:10px;}
+  .rc-reason{font-size:12px;color:var(--bear-text);font-weight:700;margin-top:8px;}
+  .rc-error{font-size:12px;color:var(--bear-text);line-height:1.6;}
+  .rc-actions{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;}
+  .exec-btn{
+    border:none;border-radius:8px;padding:10px 18px;font-size:12.5px;font-weight:800;
+    cursor:pointer;background:#16a34a;color:#fff;
+  }
+  .exec-btn:disabled{background:#cbd5e1;color:#64748b;cursor:not-allowed;}
+  .exec-msg{font-size:11.5px;color:#334155;background:#f1f5f9;border-radius:8px;padding:8px 10px;display:none;flex-basis:100%;}
+  .exec-msg.show{display:block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- BANNER -->
+  <div class="banner">
+    <h1>✨ Daily Trading Signals — Technical + Fundamental</h1>
+    <p class="sub">XAUUSD · AUD/USD · USD/CAD · USD/JPY · NAS100</p>
+    <div class="runbox">
+      <div class="l1">Last updated: Jul 27, 2026, ~12:15 AM ET run</div>
+      <div class="l2">Forex/gold have reopened for the week (early Asia Monday session); NAS100 reflects live futures ahead of Monday's cash open. Big week ahead: Fed FOMC decision Wed Jul 29, 2pm ET, and the BoJ meets Wed–Thu Jul 30–31. Next scheduled run: ~7:00 AM ET (pre-NY-open).</div>
+    </div>
+    <div class="chips">
+      <span class="chip"><span class="dot neu"></span>XAUUSD · Neutral, mild bullish lean</span>
+      <span class="chip"><span class="dot neu"></span>AUD/USD · Neutral, mild bullish lean</span>
+      <span class="chip"><span class="dot bull"></span>USD/CAD · Bullish, mild-to-clear</span>
+      <span class="chip"><span class="dot bull"></span>USD/JPY · Bullish, mild</span>
+      <span class="chip"><span class="dot bear"></span>NAS100 · Bearish, mild</span>
+    </div>
+  </div>
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer">
+    ⚠️ Informational research only — generated by an AI research assistant, not connected to any broker or execution system. Manually verify prices/levels before acting. Not financial advice. Trade ideas below (entry/stop/targets) are shown only for Medium-or-higher conviction signals — size any position so the entry-to-stop distance matches what you're actually willing to risk on the idea; that sizing decision is yours to make. The Confluence Check box is an additional informational cross-check and does not change the conviction label or trade-idea threshold.
+  </div>
+
+  <!-- RISK ENGINE SETTINGS (post-signal layer — does not affect signal generation above) -->
+  <div class="risk-settings">
+    <h2>🛡️ RISK MANAGEMENT ENGINE — SETTINGS</h2>
+    <p class="rs-sub">Post-signal layer only: these inputs never change the calls, technicals, fundamentals, or conviction levels above — they size and gate the illustrative trade ideas already shown for Medium+ conviction signals. All calculations run locally in your browser.</p>
+    <div class="rs-grid">
+      <div class="rs-field"><label>Account Size (USD)</label><input type="number" id="rm-capital" value="10000" min="0" step="100"></div>
+      <div class="rs-field"><label>Risk Per Trade (%)</label><input type="number" id="rm-riskpct" value="1" min="0" max="100" step="0.1"></div>
+      <div class="rs-field"><label>Minimum Risk/Reward</label><input type="number" id="rm-minrr" value="2" min="0" step="0.1"></div>
+      <div class="rs-field"><label>Max Portfolio Heat (%)</label><input type="number" id="rm-maxheat" value="5" min="0" max="100" step="0.5"></div>
+      <div class="rs-field"><label>Max Daily Drawdown (%)</label><input type="number" id="rm-maxdd" value="3" min="0" max="100" step="0.5"></div>
+      <div class="rs-field"><label>Today's Drawdown Used (%)</label><input type="number" id="rm-ddused" value="0" min="0" max="100" step="0.1"></div>
+    </div>
+    <div class="rs-summary">
+      <span>Trades evaluated: <b id="rm-count">–</b></span>
+      <span>Total portfolio heat if every approved idea is taken: <b id="rm-totalheat">–</b><span class="heat-bar"><span class="heat-bar-fill" id="rm-heatbar" style="width:0%"></span></span></span>
+      <span id="rm-engine-status" style="color:#4ade80;font-weight:700;">Engine OK</span>
+    </div>
+  </div>
+
+  <!-- MACRO BACKDROP -->
+  <div class="card">
+    <h2>🌍 MACRO BACKDROP TODAY</h2>
+    <div class="macro-item m-fed"><b>Fed:</b> holding 3.50–3.75%; FOMC announces Wednesday Jul 29 at 2pm ET (press conference 2:30pm ET, Chair Warsh). Base case is still a hold (5th straight, per FactSet consensus), but hike odds have swung sharply back up to ~46.5% (CME FedWatch, up from 34% Sunday) after Trump's fresh announcement reinstating a US blockade on Iranian ports near the Strait of Hormuz plus a 20% toll on cargo through the passage — a new inflation-risk headline landing right on top of the weekend's military de-escalation. Genuinely crossed signals: de-escalation on the ground, escalation on trade/shipping.</div>
+    <div class="macro-item m-rba"><b>RBA (AUD):</b> unchanged at 4.35%, next decision Aug 10–11; no new data over the weekend. Still riding last week's blowout employment beat (76.3K vs. 16.4K forecast). CBA/NAB/ANZ lean hold through year-end; Westpac dissents (sees two more hikes to 4.85%). ~55% of surveyed economists expect at least one more 2026 hike, conditional on the Q2 CPI print due before the meeting.</div>
+    <div class="macro-item m-boc"><b>BoC (CAD):</b> unchanged at 2.25% (held Jul 15, sixth straight hold); next decision Sept 2. The Aug 19 tariff deadline (50% on ~C$28bn of Canadian goods) is still on the calendar and unresolved. Today's key new driver is external: the weekend's Iran-Israel pause pulled oil sharply lower, stripping CAD of the commodity tailwind that had been capping USD/CAD's advance.</div>
+    <div class="macro-item m-boj"><b>BoJ (JPY):</b> hiked to 1% in June; meets this week, Wed–Thu Jul 30–31, with its quarterly Outlook Report — same setup as before: expected hold at 1%, growth forecast likely raised, inflation forecast likely trimmed, "further hikes" guidance retained without a clear timetable. Yen remains just under 164, still inside the 163.00–163.50+ zone flagged as the likely MoF intervention trigger. This week stacks two major central-bank events (Fed Wed, BoJ Wed–Thu) back to back.</div>
+    <div class="macro-item m-eq"><b>Equities/Gold/Oil:</b> a fragile pause in US-Iran hostilities over the weekend (first stretch without new strikes in two weeks) sent oil sharply lower — sources disagree on the scale (WTI cited near $65/bbl, off ~17% from the conflict peak, vs. Brent cited easing to ~$96.78 after breaching $100 — a real cross-source gap, flagged rather than resolved). Gold nonetheless climbed ~1% toward $4,100. US equity futures gapped up on the relief before fading intraday; Nasdaq-specific pressure persists as capital rotates out of AI-capex-exposed tech (post Alphabet/Tesla earnings) and into defensive value, with the Dow expected to outperform. The truce itself is described as fragile, with both sides already trading accusations of violations.</div>
+  </div>
+
+  <!-- XAUUSD -->
+  <div class="instrument neu">
+    <div class="inner">
+      <div class="ihead">
+        <div class="ihead-left">
+          <div class="icon-circ">🪙</div>
+          <div>
+            <p class="iname">XAUUSD</p>
+            <p class="isub">Gold Spot / USD</p>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="badge neu">◆ NEUTRAL, MILD BULLISH LEAN</span>
+          <span class="badge conv">Conviction: Low</span>
+        </div>
+      </div>
+      <div class="pricebox">~$4,090.57 (+0.95% on the day) — forex/gold have reopened for the week; gold is climbing back toward $4,100, moving away from last week's lows as the Iran-Israel pause removes some geopolitical risk premium even as Fed uncertainty into Wednesday builds.</div>
+      <div class="cols">
+        <div class="colbox">
+          <h3>📐 TECHNICAL</h3>
+          <ul>
+            <li>RSI still split across sources — 39 ("may fall further") vs. 45.8 ("neutral") — both sub-50 despite today's price gain, a genuine momentum/price divergence worth flagging. MACD still cited as deeply negative by one service.</li>
+            <li>Price has cleared back above the $4,082 level that capped it Friday, but momentum indicators aren't confirming the move — treat the disagreement as informative rather than resolving it.</li>
+            <li>Support: $4,000 (psychological) → $3,975–3,980 → $3,893.96 (today's cited support)</li>
+            <li>Resistance: $4,133–4,148 → $4,157–4,158 (today's cited resistance / 200-period EMA) → $4,168–4,203</li>
+          </ul>
+        </div>
+        <div class="colbox">
+          <h3>📰 FUNDAMENTAL</h3>
+          <ul>
+            <li>Fed hike odds have jumped further to ~46.5% (from 34% Sunday), on Trump's fresh blockade/toll announcement on Iranian shipping through the Strait of Hormuz — a hawkish headwind that, on its own, would argue against gold's gain today.</li>
+            <li>Yet gold is rising alongside the higher hike odds — the weekend's fragile military pause and lingering uncertainty into Wednesday's FOMC appear to be keeping safe-haven positioning intact despite the more hawkish rate picture. A genuine, unresolved divergence between the fundamental narrative and the tape.</li>
+            <li>Oil fell sharply on the pause (magnitude disputed across sources), which would typically ease inflation-driven hawkishness — another crosscurrent this run.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="explain">Gold's picture is genuinely harder to read this morning, not easier: price has broken back above Friday's $4,082 cap and is climbing toward $4,100, but that's happening at the same time Fed hike odds have jumped to ~46.5% (up from 34% Sunday) on a fresh Strait-of-Hormuz blockade/toll announcement — normally a headwind, not a tailwind, for the metal. RSI remains sub-50 on both cited readings, not confirming the price strength. The best read is that a fragile military pause plus real uncertainty heading into Wednesday's FOMC is keeping safe-haven flows alive even as the rate story turns more hawkish — a tug-of-war rather than a clean signal. Given price strength doesn't have technical or fundamental confirmation, this stays a mild bullish lean at Low conviction rather than a clean call.</div>
+      <div class="confluence">
+        <div class="conf-head">
+          <div class="conf-title">🔮 CONFLUENCE CHECK</div>
+          <div class="conf-meter"><div class="conf-dots"><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span></span></div><span class="conf-score">2/6</span></div>
+        </div>
+        <div class="conf-grid">
+          <div class="conf-item"><span class="ic no">✗</span>HTF trend/bias (RSI still sub-50 on both cited reads despite the price gain — momentum not confirming trend)</div>
+          <div class="conf-item"><span class="ic yes">✓</span>Horizontal S/R zone ($4,133–4,148 explicitly cited as the next resistance band above current price)</div>
+          <div class="conf-item"><span class="ic na">—</span>Trendline/channel (not assessed — no specific trendline level sourced this run)</div>
+          <div class="conf-item"><span class="ic yes">✓</span>Moving-average confluence (the ~$4,157–4,158 200-period EMA sits just above this resistance band)</div>
+          <div class="conf-item"><span class="ic na">—</span>Fibonacci confluence (no fib level cited aligning with this exact zone)</div>
+          <div class="conf-item"><span class="ic no">✗</span>Round number ($4,133–4,148 isn't a clean handle; $4,100/$4,150 sit nearby but not exactly on it)</div>
+        </div>
+        <div class="conf-note">Low confluence (2/6) — consistent with the Low-conviction call. The price/momentum divergence and the hawkish-Fed-odds-vs-rising-gold conflict are themselves the reason for caution, not a resolvable setup.</div>
+        <div class="conf-reminder">Zone requires a lower-timeframe price-action trigger (rejection wick/engulfing/break of structure) before treating as actionable — score alone isn't an entry signal.</div>
+      </div>
+      <div class="flip">↩️ Flips bullish on: a confirmed close above $4,148–4,158 with RSI confirming above 50. Flips bearish on: a break below $4,000/$3,975, or hike odds continuing to climb past the 46.5% mark into Wednesday.</div>
+    </div>
+  </div>
+
+  <!-- AUD/USD -->
+  <div class="instrument neu">
+    <div class="inner">
+      <div class="ihead">
+        <div class="ihead-left">
+          <div class="icon-circ">🇦🇺</div>
+          <div>
+            <p class="iname">AUD/USD</p>
+            <p class="isub">Australian Dollar / USD</p>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="badge neu">◆ NEUTRAL, MILD BEARISH LEAN</span>
+          <span class="badge conv">Conviction: Low</span>
+        </div>
+      </div>
+      <div class="pricebox">~0.6981 (today's range 0.6964–0.7002, open 0.6968) — essentially flat vs. Friday's 0.6977 close, still hovering right around the 0.6976 EMA / 0.7000 handle. Forex markets have reopened for the week.</div>
+      <div class="cols">
+        <div class="colbox">
+          <h3>📐 TECHNICAL</h3>
+          <ul>
+            <li>MACD histogram flattening just below zero — "upside momentum positive but not aggressive" per one service, describing AUD/USD as maintaining a bullish structure within an ascending channel with a modest pullback toward 0.7000–0.7005 support. A more constructive framing than Friday's.</li>
+            <li>Support: 0.6993 (38.2% Fib) → 0.6976 (100-period EMA) → 0.6944 (23.6% Fib, deeper)</li>
+            <li>Resistance: 0.7033 (50% Fib) → 0.7072 (61.8% Fib) → 0.7129 (78.6% Fib) → 0.7201 (cycle-high region)</li>
+          </ul>
+        </div>
+        <div class="colbox">
+          <h3>📰 FUNDAMENTAL</h3>
+          <ul>
+            <li>RBA unchanged at 4.35%, next decision Aug 10–11 — no new data over the weekend; still riding last week's blowout jobs beat (76.3K vs. 16.4K forecast).</li>
+            <li>Broad USD picture is more mixed than Friday: this morning's fresh Strait-of-Hormuz blockade/toll news pushed Fed hike odds up to ~46.5% (USD-positive), but the weekend's Iran-Israel military pause and oil selloff have added a risk-on tone that's taken some pressure off AUD specifically — a less one-sidedly bearish setup for the pair than Friday's close.</li>
+            <li>Next catalyst: the Q2 CPI print ahead of the Aug 10–11 RBA decision.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="explain">AUD/USD is essentially unchanged from Friday's close at 0.6981, but the tone underneath has shifted slightly more constructive: one service now describes the pair as maintaining a bullish structure within an ascending channel, with MACD momentum flattening rather than deteriorating. The broad-USD headwind that dominated Friday is also less one-sided this morning — yes, Fed hike odds jumped further on the fresh Iran shipping-blockade headline, but the weekend's military pause and oil selloff have added a risk-on counterweight that takes some pressure off AUD specifically. With last week's blowout jobs data still underpinning the RBA-hike case and price holding the same 0.6976–0.7000 zone rather than breaking it, this nudges to a mild bullish lean — still Low conviction given how little has actually resolved.</div>
+      <div class="confluence">
+        <div class="conf-head">
+          <div class="conf-title">🔮 CONFLUENCE CHECK</div>
+          <div class="conf-meter"><div class="conf-dots"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div><span class="conf-score">3/6</span></div>
+        </div>
+        <div class="conf-grid">
+          <div class="conf-item"><span class="ic no">✗</span>HTF trend/bias (one service calls the channel bullish, but broad-USD crosscurrents keep the daily bias unresolved)</div>
+          <div class="conf-item"><span class="ic yes">✓</span>Horizontal S/R zone (0.6976 cited as the near-term support being tested)</div>
+          <div class="conf-item"><span class="ic na">—</span>Trendline confluence (an ascending channel is cited but no specific line level given)</div>
+          <div class="conf-item"><span class="ic yes">✓</span>Moving-average confluence (100-period EMA sits exactly at 0.6976)</div>
+          <div class="conf-item"><span class="ic yes">✓</span>Fibonacci confluence (0.6993, the 38.2% retracement, sits just above this zone, reinforcing it)</div>
+          <div class="conf-item"><span class="ic no">✗</span>Round number (0.6976 isn't a clean handle; 0.7000 sits just above the zone)</div>
+        </div>
+        <div class="conf-note">Confluence improves slightly to 3/6 with the added fib level — still not enough to lift this above Low conviction given the broad-USD crosscurrents are doing more work than the technical zone itself.</div>
+        <div class="conf-reminder">Zone requires a lower-timeframe price-action trigger (rejection wick/engulfing/break of structure) before treating as actionable — score alone isn't an entry signal.</div>
+      </div>
+      <div class="flip">↩️ Flips more clearly bullish on: a hold above 0.7000 combined with a break of the 0.7033–0.7072 fib cluster. Flips bearish on: a break below 0.6976/0.6944, or hike odds continuing to climb into Wednesday's FOMC.</div>
+    </div>
+  </div>
+
+  <!-- USD/CAD -->
+  <div class="instrument bull">
+    <div class="inner">
+      <div class="ihead">
+        <div class="ihead-left">
+          <div class="icon-circ">🇨🇦</div>
+          <div>
+            <p class="iname">USD/CAD</p>
+            <p class="isub">USD / Canadian Dollar</p>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="badge bull">▲ BULLISH, MILD-TO-CLEAR</span>
+          <span class="badge conv">Conviction: Medium</span>
+        </div>
+      </div>
+      <div class="pricebox">~1.4095 (today's range 1.4066–1.4116, prev close 1.4085) — ticking higher as the weekend's oil selloff strips CAD of its commodity tailwind. Forex markets have reopened for the week.</div>
+      <div class="cols">
+        <div class="colbox">
+          <h3>📐 TECHNICAL</h3>
+          <ul>
+            <li>Mixed timeframe read: one service still places the 50-day SMA below the 200-day ("sellers control the medium-term trend") even as near-term momentum stays bullish and price trades near the upper half of its recent range — a genuine multi-timeframe conflict, not fully resolved.</li>
+            <li>Support: 1.4066 (today's range low) → 1.4050 → 1.4000 (psychological) → 1.3998 (50-day EMA, cited as the deeper level if the range breaks)</li>
+            <li>Resistance: 1.4116 (today's range high) → 1.4150 (round number, cited hurdle) → 1.4182 (9-day EMA) → 1.4248 (~15-month high)</li>
+          </ul>
+        </div>
+        <div class="colbox">
+          <h3>📰 FUNDAMENTAL</h3>
+          <ul>
+            <li>The weekend's Iran-Israel military pause sent oil sharply lower (magnitude disputed across sources) — this strips away the commodity-currency tailwind that had been capping USD/CAD's advance, a cleaner bullish driver than Friday's more offsetting picture.</li>
+            <li>Fresh Fed hike-odds repricing (~46.5%, up from 34% Sunday) on the new Strait-of-Hormuz blockade/toll headline adds broad USD support, now pointing the same direction as the oil move rather than fighting it.</li>
+            <li>BoC unchanged (2.25%, next decision Sept 2); the Aug 19 tariff deadline on ~C$28bn of Canadian goods remains on the calendar and unresolved.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="explain">USD/CAD has ticked up to 1.4095, and this morning's setup is actually cleaner than Friday's: the oil tailwind that had been propping up CAD and capping the pair's advance has reversed sharply on the weekend's Iran-Israel pause, while a fresh Fed hike-odds repricing (to ~46.5%) adds broad USD support — both drivers now point the same bullish direction instead of offsetting each other. The medium-term technical picture is still not fully aligned (one service still has the 50-day SMA below the 200-day, a sellers-in-control signal on a longer timeframe), and the still-unresolved Aug 19 tariff deadline remains a separate, dated CAD headwind in the background. With price holding the upper half of its range and the fundamental crosscurrents now more aligned, this nudges to mild-to-clear bullish, still Medium conviction pending a clean break of 1.4116–1.4150.</div>
+      <div class="confluence">
+        <div class="conf-head">
+          <div class="conf-title">🔮 CONFLUENCE CHECK</div>
+          <div class="conf-meter"><div class="conf-dots"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div><span class="conf-score">3/6</span></div>
+        </div>
+        <div class="conf-grid">
+          <div class="conf-item"><span class="ic no">✗</span>HTF trend/bias (medium-term 50-day-below-200-day read still contradicts the near-term bullish move — unresolved)</div>
+          <div class="conf-item"><span class="ic yes">✓</span>Horizontal S/R zone (1.4116 explicitly cited as today's range high/hurdle)</div>
+          <div class="conf-item"><span class="ic na">—</span>Trendline confluence (an ascending channel is cited but boundary levels conflict across sources this run)</div>
+          <div class="conf-item"><span class="ic yes">✓</span>Moving-average confluence (9-day EMA at 1.4182 sits just above, reinforcing the broader resistance band)</div>
+          <div class="conf-item"><span class="ic na">—</span>Fibonacci confluence (no fib level cited aligning with this exact zone)</div>
+          <div class="conf-item"><span class="ic yes">✓</span>Round number (1.4150 sits directly inside the resistance band as a cited hurdle)</div>
+        </div>
+        <div class="conf-note">Moderate confluence (3/6) — round-number and MA reinforcement support the bullish read, but the unresolved medium-term trend conflict keeps this at Medium rather than High conviction.</div>
+        <div class="conf-reminder">Zone requires a lower-timeframe price-action trigger (rejection wick/engulfing/break of structure) before treating as actionable — score alone isn't an entry signal.</div>
+      </div>
+      <div class="trade">
+        <div class="trade-title">🎯 INTRADAY TRADE IDEA (LONG BIAS)</div>
+        <div class="trade-grid">
+          <div class="trade-cell"><div class="tl">🎯 ENTRY</div><div class="tv">Buy dip into 1.4066–1.4080 (today's range-low support; price currently trades ~1.4095, above this zone)</div></div>
+          <div class="trade-cell"><div class="tl">🛑 STOP LOSS</div><div class="tv">1.4045 (below 1.4050/1.4000 support shelf, small buffer)</div></div>
+          <div class="trade-cell"><div class="tl">🏁 TP1</div><div class="tv">1.4116 (~1.0R)</div></div>
+          <div class="trade-cell"><div class="tl">🏁 TP2</div><div class="tv">1.4150 (~2.0R)</div></div>
+          <div class="trade-cell"><div class="tl">🏁 TP3 (STRETCH)</div><div class="tv">1.4182 (~2.9R)</div></div>
+        </div>
+        <div class="trade-note">Biggest risk: this idea leans on the oil selloff/hawkish-Fed combination holding through Wednesday's FOMC — a re-escalation in the Iran-Israel conflict (oil spikes back, CAD-positive) or a dovish FOMC surprise could reverse both legs of this setup at once. Risk/reward computed from a 1.4080 entry vs. 1.4045 stop (35-pip risk): TP1 reward 36 pips (1.0R), TP2 reward 70 pips (2.0R), TP3 reward 102 pips (2.9R).</div>
+      </div>
+
+      <!-- RISK MANAGEMENT EVALUATION (post-signal layer) -->
+      <div class="riskcard" id="riskcard-cad">
+        <div class="riskcard-head">
+          <div class="riskcard-title">🛡️ RISK MANAGEMENT EVALUATION</div>
+          <span class="rc-badge" id="rc-badge-cad">Evaluating…</span>
+        </div>
+        <div class="rc-grid">
+          <div class="rc-cell"><div class="rl">RECOMMENDED POSITION SIZE</div><div class="rv" id="rc-size-cad">–</div></div>
+          <div class="rc-cell"><div class="rl">DYNAMIC STOP LOSS</div><div class="rv" id="rc-stop-cad">–</div></div>
+          <div class="rc-cell"><div class="rl">DYNAMIC TAKE PROFIT</div><div class="rv" id="rc-tp-cad">–</div></div>
+          <div class="rc-cell"><div class="rl">PORTFOLIO HEAT (AFTER THIS TRADE)</div><div class="rv" id="rc-heat-cad">–</div></div>
+        </div>
+        <div class="rc-note" id="rc-note-cad"></div>
+        <div class="rc-reason" id="rc-reason-cad" style="display:none;"></div>
+        <div class="rc-actions">
+          <button class="exec-btn" id="rc-exec-cad" disabled>Execute Order</button>
+          <span class="exec-msg" id="rc-msg-cad"></span>
+        </div>
+      </div>
+
+      <div class="flip">↩️ Flips more clearly bullish on: a confirmed break and hold above 1.4150. Flips bearish on: a daily close back below 1.4000/1.3998, a re-escalation in the Iran-Israel conflict that reverses the oil selloff, or a dovish FOMC surprise Wednesday.</div>
+    </div>
+  </div>
+
+  <!-- USD/JPY -->
+  <div class="instrument bull">
+    <div class="inner">
+      <div class="ihead">
+        <div class="ihead-left">
+          <div class="icon-circ">🇯🇵</div>
+          <div>
+            <p class="iname">USD/JPY</p>
+            <p class="isub">USD / Japanese Yen</p>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="badge bull">▲ BULLISH, MILD</span>
+          <span class="badge conv">Conviction: Medium</span>
+        </div>
+      </div>
+      <div class="pricebox">~163.85 (today's range 163.64–163.97, prev close 163.85) — essentially flat vs. Friday, holding just under the 164.00 handle. Forex markets have reopened for the week.</div>
+      <div class="cols">
+        <div class="colbox">
+          <h3>📐 TECHNICAL</h3>
+          <ul>
+            <li>Price is stable inside the same range flagged Friday, still above the old 162.84 cycle high. One automated pivot-service reading this morning showed a wildly inconsistent ~160.2 print with resistance levels barely above that — treat as a stale/erroneous source and disregard; the 163.83–163.87 bid/ask range from a separate live-quote source is far more consistent with continuity from Friday's close.</li>
+            <li>Support: 162.84 (former cycle high, now first retest zone) → 162.26 (rising trendline) → 160.49 (origin of the current leg) → 159.84 (38.2% Fib retracement of the 155.01–162.83 move)</li>
+            <li>Resistance: 163.97 (today's range high) → 164.00 (psychological) → 165.00 (next objective per one source)</li>
+          </ul>
+        </div>
+        <div class="colbox">
+          <h3>📰 FUNDAMENTAL</h3>
+          <ul>
+            <li>This week stacks two major central-bank events back to back: FOMC Wednesday (hike odds now ~46.5%, up sharply on the fresh Iran shipping-blockade headline) and the BoJ Wed–Thu with its quarterly Outlook Report — a compressed, high-risk 48-hour window for this pair.</li>
+            <li>Price remains inside the 163.00–163.50+ zone flagged as the likely Japanese MoF intervention trigger — unchanged from Friday, still a live event risk.</li>
+            <li>The weekend's Iran-Israel pause and oil selloff have added a modest risk-on tone, a mild yen headwind (safe-haven demand easing) that reinforces the pair's structural bullish lean.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="explain">USD/JPY is essentially unchanged from Friday, holding just under 164.00 and still above the old 162.84 cycle high. What's changed is the calendar: this week now stacks the Fed's Wednesday decision — with hike odds freshly repriced to ~46.5% on the Iran shipping-blockade headline — directly against the BoJ's own Wednesday–Thursday meeting, a compressed 48-hour window where either central bank could move this pair sharply. Price still sits inside the zone flagged as the likely MoF intervention trigger, and the weekend's risk-on tone (oil lower, some Iran de-escalation) is a mild additional yen headwind. Trend backs continuation, but the stacked, back-to-back event risk this week is a bigger factor than any single technical level — hence Medium conviction, unchanged from Friday.</div>
+      <div class="confluence">
+        <div class="conf-head">
+          <div class="conf-title">🔮 CONFLUENCE CHECK</div>
+          <div class="conf-meter"><div class="conf-dots"><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span></span></div><span class="conf-score">2/6</span></div>
+        </div>
+        <div class="conf-grid">
+          <div class="conf-item"><span class="ic yes">✓</span>HTF trend/bias (structure intact, price holding above the old cycle high)</div>
+          <div class="conf-item"><span class="ic yes">✓</span>Horizontal S/R zone (163.97/164.00 cited as today's range high / psychological level)</div>
+          <div class="conf-item"><span class="ic no">✗</span>Trendline confluence (cited rising trendline sits well below, near 162.26 — doesn't reinforce this zone)</div>
+          <div class="conf-item"><span class="ic na">—</span>Moving-average confluence (no specific MA cited exactly at this zone this run)</div>
+          <div class="conf-item"><span class="ic na">—</span>Fibonacci confluence (cited fib levels sit well below, near 159.84 — don't align with this zone)</div>
+          <div class="conf-item"><span class="ic no">✗</span>Round number (163.97 isn't exact; 164.00 sits just above and is the cleaner level)</div>
+        </div>
+        <div class="conf-note">Low-to-moderate confluence (2/6) — unchanged from Friday. Combined with the stacked Fed/BoJ event risk this week, this argues for real caution despite the Medium-conviction bullish call.</div>
+        <div class="conf-reminder">Zone requires a lower-timeframe price-action trigger (rejection wick/engulfing/break of structure) before treating as actionable — score alone isn't an entry signal.</div>
+      </div>
+      <div class="trade">
+        <div class="trade-title">🎯 INTRADAY TRADE IDEA (LONG BIAS)</div>
+        <div class="trade-grid">
+          <div class="trade-cell"><div class="tl">🎯 ENTRY</div><div class="tv">Buy pullback into 163.20–163.50 (former cycle-high/psych zone acting as support; price currently trades ~163.85, above this zone)</div></div>
+          <div class="trade-cell"><div class="tl">🛑 STOP LOSS</div><div class="tv">162.70 (below 162.84 old cycle high / trendline area, small buffer)</div></div>
+          <div class="trade-cell"><div class="tl">🏁 TP1</div><div class="tv">164.00 (~1.0R)</div></div>
+          <div class="trade-cell"><div class="tl">🏁 TP2</div><div class="tv">164.50 (~1.8R)</div></div>
+          <div class="trade-cell"><div class="tl">🏁 TP3 (STRETCH)</div><div class="tv">165.00 (~2.5R)</div></div>
+        </div>
+        <div class="trade-note">Biggest risk: this trade sits directly under the price zone multiple analysts flag as the likely Japanese MoF intervention trigger, and both Wednesday's FOMC and the Wed–Thu BoJ meeting land squarely inside the setup's likely resolution window — any one of the three (Fed, BoJ, or MoF) could invalidate this quickly and violently regardless of the technical structure. Risk/reward computed from a 163.35 entry vs. 162.70 stop (65-pip risk): TP1 reward 65 pips (1.0R), TP2 reward 115 pips (1.8R), TP3 reward 165 pips (2.5R).</div>
+      </div>
+
+      <!-- RISK MANAGEMENT EVALUATION (post-signal layer) -->
+      <div class="riskcard" id="riskcard-jpy">
+        <div class="riskcard-head">
+          <div class="riskcard-title">🛡️ RISK MANAGEMENT EVALUATION</div>
+          <span class="rc-badge" id="rc-badge-jpy">Evaluating…</span>
+        </div>
+        <div class="rc-grid">
+          <div class="rc-cell"><div class="rl">RECOMMENDED POSITION SIZE</div><div class="rv" id="rc-size-jpy">–</div></div>
+          <div class="rc-cell"><div class="rl">DYNAMIC STOP LOSS</div><div class="rv" id="rc-stop-jpy">–</div></div>
+          <div class="rc-cell"><div class="rl">DYNAMIC TAKE PROFIT</div><div class="rv" id="rc-tp-jpy">–</div></div>
+          <div class="rc-cell"><div class="rl">PORTFOLIO HEAT (AFTER THIS TRADE)</div><div class="rv" id="rc-heat-jpy">–</div></div>
+        </div>
+        <div class="rc-note" id="rc-note-jpy"></div>
+        <div class="rc-reason" id="rc-reason-jpy" style="display:none;"></div>
+        <div class="rc-actions">
+          <button class="exec-btn" id="rc-exec-jpy" disabled>Execute Order</button>
+          <span class="exec-msg" id="rc-msg-jpy"></span>
+        </div>
+      </div>
+
+      <div class="flip">↩️ Flips more clearly bullish on: a hold above 164.00 with no hawkish surprise from either the Fed or the BoJ this week. Flips bearish on: a break below 162.84/162.26, an intervention warning/action from Japan's MoF, or a hawkish BoJ surprise Wed–Thu.</div>
+    </div>
+  </div>
+
+  <!-- NAS100 -->
+  <div class="instrument bear">
+    <div class="inner">
+      <div class="ihead">
+        <div class="ihead-left">
+          <div class="icon-circ">📊</div>
+          <div>
+            <p class="iname">NAS100</p>
+            <p class="isub">Nasdaq-100 Index (NDX)</p>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="badge bear">▼ BEARISH, MILD</span>
+          <span class="badge conv">Conviction: Medium</span>
+        </div>
+      </div>
+      <div class="pricebox">~28,282 (futures) — gapped up to open at 28,700 on ceasefire relief, then faded through the session to a low of 28,212 before stabilizing; still above Friday's ~28,127 cash close but well off today's highs. Cash market not yet open; levels reflect live futures ahead of Monday's session.</div>
+      <div class="cols">
+        <div class="colbox">
+          <h3>📐 TECHNICAL</h3>
+          <ul>
+            <li>Genuinely conflicting reads this morning: one service describes a rejection from 28,500 resistance with failure-to-hold-28,450 exposing 28,100/27,900; another describes a "strong bullish rebound" off the 28,400 support zone with a move above 29,000 opening the way to 29,296. Treat this as an unresolved split, not noise.</li>
+            <li>Support: 28,100 → 27,900 → 27,844 (carried from Friday)</li>
+            <li>Resistance: 28,450–28,500 (today's rejection zone) → 28,700–28,736 (today's high) → 29,000 (round number / 50-day SMA) → 29,296</li>
+          </ul>
+        </div>
+        <div class="colbox">
+          <h3>📰 FUNDAMENTAL</h3>
+          <ul>
+            <li>The weekend's Iran-Israel pause is a broad risk-on tailwind (why futures gapped up at the open), but capital continues rotating out of AI-capex-exposed tech and into defensive value — the Dow is expected to outperform today — so the relief rally isn't translating cleanly into tech strength.</li>
+            <li>Alphabet/Tesla AI-capex jitters from last week's earnings are still the dominant tech-specific overhang.</li>
+            <li>Fresh Fed hike-odds repricing (~46.5%, up from 34% Sunday) into Wednesday's FOMC is an added headwind for the rate-sensitive index, landing right as the relief rally already faded intraday.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="explain">NAS100 gapped up hard at the open on Iran-Israel ceasefire relief, then gave almost all of it back within the session — a pattern consistent with a broad risk-on tailwind fighting a tech-specific headwind that hasn't gone away. Capital is rotating into defensive value rather than back into AI-capex names, and this week's fresh, sharply higher Fed hike odds (~46.5%) add a fresh headwind for the rate-sensitive index right into Wednesday's decision. Today's technical reads are genuinely split — one service sees a rejection from 28,500 opening the way lower, another sees a bullish rebound off 28,400 — reinforcing that this remains a two-sided, catalyst-dependent setup rather than a clean trend. The bearish lean stays intact given the intraday fade and continued sector rotation away from tech, but conviction stays Medium given the real chance of a squeeze if the ceasefire holds and sentiment broadens back into growth names.</div>
+      <div class="confluence">
+        <div class="conf-head">
+          <div class="conf-title">🔮 CONFLUENCE CHECK</div>
+          <div class="conf-meter"><div class="conf-dots"><span class="on"></span><span></span><span></span><span></span><span></span><span></span></div><span class="conf-score">1/6</span></div>
+        </div>
+        <div class="conf-grid">
+          <div class="conf-item"><span class="ic no">✗</span>HTF trend/bias (genuinely split this run — one service bearish-rejection, another bullish-rebound at nearly the same levels)</div>
+          <div class="conf-item"><span class="ic yes">✓</span>Horizontal S/R zone (28,450–28,500 explicitly cited as today's rejection zone)</div>
+          <div class="conf-item"><span class="ic na">—</span>Trendline confluence (not assessed this run)</div>
+          <div class="conf-item"><span class="ic no">✗</span>Moving-average confluence (nearest cited MA — the 50-day SMA near 29,000 — sits well above this zone)</div>
+          <div class="conf-item"><span class="ic na">—</span>Fibonacci confluence (no fib level cited aligning with this zone)</div>
+          <div class="conf-item"><span class="ic no">✗</span>Round number (28,450–28,500 isn't a single clean level; 28,500 is close but sources disagree on its role)</div>
+        </div>
+        <div class="conf-note">Low confluence (1/6) — the weakest reading of the run. This reflects genuinely conflicting source technicals more than a clean setup; treat the bearish lean as a mild one and size accordingly.</div>
+        <div class="conf-reminder">Zone requires a lower-timeframe price-action trigger (rejection wick/engulfing/break of structure) before treating as actionable — score alone isn't an entry signal.</div>
+      </div>
+      <div class="trade">
+        <div class="trade-title">🎯 INTRADAY TRADE IDEA (SHORT BIAS)</div>
+        <div class="trade-grid">
+          <div class="trade-cell"><div class="tl">🎯 ENTRY</div><div class="tv">Sell a rally/retest into 28,450–28,500 (today's rejection zone; price currently ~28,282, below this zone)</div></div>
+          <div class="trade-cell"><div class="tl">🛑 STOP LOSS</div><div class="tv">28,750 (above today's high and the session open, small buffer)</div></div>
+          <div class="trade-cell"><div class="tl">🏁 TP1</div><div class="tv">28,100 (~1.4R)</div></div>
+          <div class="trade-cell"><div class="tl">🏁 TP2</div><div class="tv">27,900 (~2.1R)</div></div>
+          <div class="trade-cell"><div class="tl">🏁 TP3 (STRETCH)</div><div class="tv">27,700 (~2.8R)</div></div>
+        </div>
+        <div class="trade-note">Biggest risk: this is a short into a market that just gapped up on ceasefire relief and is genuinely split on technicals — if the truce holds and sentiment broadens back into growth/tech (rather than staying rotated into defensives), a short-covering rally could run straight through the entry zone; Wednesday's FOMC is a second binary catalyst sitting inside this trade's likely resolution window. Risk/reward computed from a 28,475 entry vs. 28,750 stop (275-point risk): TP1 reward 375 points (1.4R), TP2 reward 575 points (2.1R), TP3 reward 775 points (2.8R).</div>
+      </div>
+
+      <!-- RISK MANAGEMENT EVALUATION (post-signal layer) -->
+      <div class="riskcard" id="riskcard-nas">
+        <div class="riskcard-head">
+          <div class="riskcard-title">🛡️ RISK MANAGEMENT EVALUATION</div>
+          <span class="rc-badge" id="rc-badge-nas">Evaluating…</span>
+        </div>
+        <div class="rc-grid">
+          <div class="rc-cell"><div class="rl">RECOMMENDED POSITION SIZE</div><div class="rv" id="rc-size-nas">–</div></div>
+          <div class="rc-cell"><div class="rl">DYNAMIC STOP LOSS</div><div class="rv" id="rc-stop-nas">–</div></div>
+          <div class="rc-cell"><div class="rl">DYNAMIC TAKE PROFIT</div><div class="rv" id="rc-tp-nas">–</div></div>
+          <div class="rc-cell"><div class="rl">PORTFOLIO HEAT (AFTER THIS TRADE)</div><div class="rv" id="rc-heat-nas">–</div></div>
+        </div>
+        <div class="rc-note" id="rc-note-nas"></div>
+        <div class="rc-reason" id="rc-reason-nas" style="display:none;"></div>
+        <div class="rc-actions">
+          <button class="exec-btn" id="rc-exec-nas" disabled>Execute Order</button>
+          <span class="exec-msg" id="rc-msg-nas"></span>
+        </div>
+      </div>
+
+      <div class="flip">↩️ Flips bearish-to-more-clear on: a break below 28,100/27,900. Flips bullish on: a reclaim/hold above 28,700–29,000, a sustained ceasefire that broadens risk appetite back into tech, or a dovish FOMC surprise Wednesday.</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Data-quality notes this run: Claude in Chrome browser tools were not connected this run, so technicals were synthesized via WebSearch across multiple providers rather than pulled live from a single TradingView session — expect more source-to-source variance than a browser-sourced run. Several genuine cross-source conflicts are flagged explicitly above rather than resolved: XAUUSD's RSI split (39 vs. 45.8) alongside a price/momentum divergence; USD/JPY's stray ~160.2 pivot-service reading, treated as stale and disregarded in favor of the consistent ~163.85 live-quote source; the oil-price-drop magnitude (WTI near $65 vs. Brent near $96.78 cited by different sources); and NAS100's genuinely split technical calls (bearish rejection vs. bullish rebound at similar levels). This run lands in the early Monday Asia session — forex/gold have reopened for the week, while NAS100 reflects live futures ahead of Monday's cash open (not yet a confirmed cash print). A fresh, same-run price/news check was run for every instrument; the weekend's US-Iran military pause and Trump's fresh Strait-of-Hormuz blockade/toll announcement materially changed the macro backdrop from Friday's run, particularly Fed hike odds (now ~46.5%, up from Friday's ~25–36.5% range and Sunday's 34%) and the oil-driven CAD/gold/equities crosscurrents. USD/CAD, USD/JPY, and NAS100 trade ideas were fully re-derived from fresh levels rather than reusing Friday's stale entries. RBA's Aug 10–11 decision and BoC's Sept 2 decision remain forward-looking market pricing, not confirmed outcomes; the Aug 19 CAD tariff deadline is unchanged and still pending. Sources used this run: LiteFinance, TradersUnion, TradingView, FXStreet, Investing.com, IFCMarkets, JM Bullion, TradingEconomics, USAGold, GoldPrice.org, J.P. Morgan Global Research, Kitco, economies.com, FX Leaders, Forex.com, CoinCodex, Yahoo Finance, Federal Reserve H.10 release, exchange-rates.org, Robinhood prediction markets, CBS News, CME FedWatch, Kalshi, CNN, Washington Post, TradingView (oil charts), Gulf News, Sunday Guardian Live, TradingEconomics (equities/oil news), CNBC (stock market outlook), and ForexFactory.com. Levels and readings can shift intraday — treat this as a starting point for your own confirmation, not an execution signal. Trade ideas (entry/stop/targets) are only generated for Medium-or-higher conviction signals, are illustrative price-action setups (not guaranteed fills), and assume you confirm live levels before acting. The Confluence Check box is an additional, informational cross-check (HTF trend, S/R, trendline, moving-average, Fibonacci, and round-number alignment plus a price-action-trigger requirement) — it does not change the conviction label or trade-idea threshold above. The Risk Management Engine below the trade ideas is a separate, post-signal layer (position sizing, portfolio heat, and drawdown gating against your own settings) — it does not alter how any signal above was generated.
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================================================
+     RISK MANAGEMENT ENGINE — post-signal processing layer only.
+     This script never edits, regenerates, or overrides the signal
+     cards above (direction, conviction, technicals, fundamentals,
+     confluence). It reads the already-published trade ideas for
+     the 3 Medium+ conviction signals (USD/CAD, USD/JPY, NAS100)
+     and layers position sizing / gating math on top.
+     ============================================================ */
+
+  // Signal data mirrors exactly what's already printed in each
+  // instrument's Trade Idea box above — not re-derived here.
+  // assetClass drives how "position size" gets simplified into lots:
+  //  - 'fx-usd-base': USD/XXX pairs — 1 standard lot = 100,000 units of USD,
+  //    so lots = (raw units × price) / 100,000 (converts the raw formula's
+  //    quote-currency risk into USD-base standard lots).
+  //  - 'index': CFD index (NAS100) — most brokers quote 1.0 lot ≈ $1 per
+  //    index point, so raw units already reads as lots directly.
+  var riskSignals = [
+    { id: 'cad', symbol: 'USD/CAD', direction: 'long',  entry: 1.4080, stop: 1.4045, tp1: 1.4116, assetClass: 'fx-usd-base' },
+    { id: 'jpy', symbol: 'USD/JPY', direction: 'long',  entry: 163.35, stop: 162.70, tp1: 164.00, assetClass: 'fx-usd-base' },
+    { id: 'nas', symbol: 'NAS100',  direction: 'short', entry: 28475,  stop: 28750,  tp1: 28100,  assetClass: 'index' }
+  ];
+
+  function decimalsFor(id){
+    if (id === 'nas') return 0;
+    if (id === 'jpy') return 2;
+    return 4; // FX pairs quoted to 4 decimals
+  }
+
+  // Converts the raw Size = (Capital × Risk%) / (Entry − Stop) units into a
+  // simple, MT4/MT5-style lot number so it can be entered directly.
+  function toLots(signal, positionSizeUnits){
+    if (signal.assetClass === 'index') {
+      return { lots: positionSizeUnits, assumption: 'assumes ≈$1 per index point per 1.0 lot — confirm your OctaFX NAS100 contract size, this varies by broker' };
+    }
+    var STANDARD_LOT = 100000;
+    var lots = (positionSizeUnits * signal.entry) / STANDARD_LOT;
+    return { lots: lots, assumption: '1 standard lot = 100,000 units; converted at the current ' + signal.symbol + ' price' };
+  }
+
+  function fmt(n, decimals){
+    if (n === null || n === undefined || !isFinite(n)) return '–';
+    return Number(n).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  }
+
+  function getSettings(){
+    function g(id){ return parseFloat(document.getElementById(id).value); }
+    return {
+      capital: g('rm-capital'),
+      riskPct: g('rm-riskpct'),
+      minRR:   g('rm-minrr'),
+      maxHeat: g('rm-maxheat'),
+      maxDD:   g('rm-maxdd'),
+      ddUsed:  g('rm-ddused')
+    };
+  }
+
+  /**
+   * process_post_signal_risk(signal, settings, cumulativeHeat)
+   * Pure post-signal function: takes an already-generated signal
+   * (entry/stop/tp/direction) plus the user's UI risk settings and
+   * the portfolio heat accumulated so far this run, and returns a
+   * risk evaluation. Does not touch how the signal itself was made.
+   */
+  function process_post_signal_risk(signal, settings, cumulativeHeat){
+    // 1) Stop loss: use the signal's predefined stop; fall back to a
+    //    dynamic 0.5% volatility buffer only if one is missing.
+    var stop = signal.stop;
+    var dynamicStopUsed = false;
+    if (stop === null || stop === undefined || isNaN(stop)) {
+      var bufferPct = 0.005;
+      stop = signal.direction === 'long' ? signal.entry * (1 - bufferPct) : signal.entry * (1 + bufferPct);
+      dynamicStopUsed = true;
+    }
+
+    var riskPerUnit = Math.abs(signal.entry - stop);
+    if (!isFinite(riskPerUnit) || riskPerUnit <= 0) {
+      throw new Error('Invalid entry/stop distance for ' + signal.symbol);
+    }
+
+    // 2) Take profit: use the signal's TP if it already clears the
+    //    user's Minimum R:R; otherwise extend it dynamically so it does.
+    var tp = signal.tp1;
+    if (tp === null || tp === undefined || isNaN(tp)) {
+      tp = signal.direction === 'long' ? signal.entry + riskPerUnit * settings.minRR : signal.entry - riskPerUnit * settings.minRR;
+    }
+    var dynamicTPUsed = false;
+    var tpRR = Math.abs(tp - signal.entry) / riskPerUnit;
+    if (isFinite(settings.minRR) && settings.minRR > 0 && tpRR < settings.minRR) {
+      tp = signal.direction === 'long' ? signal.entry + riskPerUnit * settings.minRR : signal.entry - riskPerUnit * settings.minRR;
+      dynamicTPUsed = true;
+    }
+    var finalRR = Math.abs(tp - signal.entry) / riskPerUnit;
+
+    if (!isFinite(settings.capital) || settings.capital <= 0) throw new Error('Invalid account size');
+    if (!isFinite(settings.riskPct) || settings.riskPct <= 0) throw new Error('Invalid risk-per-trade %');
+
+    // 3) Position sizing: Size = (Account Capital * Risk%) / (Entry - Stop)
+    var riskDollars = settings.capital * (settings.riskPct / 100);
+    var positionSizeUnits = riskDollars / riskPerUnit;
+
+    // 4) Conditional execution checks: portfolio heat + daily drawdown cap.
+    var newHeat = cumulativeHeat + settings.riskPct;
+    var reasons = [];
+    if (settings.ddUsed + settings.riskPct > settings.maxDD) {
+      reasons.push('Daily Drawdown Limit Reached');
+    }
+    if (newHeat > settings.maxHeat) {
+      reasons.push('Portfolio Heat Cap Reached');
+    }
+
+    return {
+      approved: reasons.length === 0,
+      reasons: reasons,
+      stop: stop, tp: tp, finalRR: finalRR,
+      positionSizeUnits: positionSizeUnits, riskDollars: riskDollars,
+      dynamicStopUsed: dynamicStopUsed, dynamicTPUsed: dynamicTPUsed,
+      newHeat: newHeat
+    };
+  }
+
+  function wireExecuteButton(id){
+    var btn = document.getElementById('rc-exec-' + id);
+    if (!btn) return;
+    btn.onclick = function(){
+      var msg = document.getElementById('rc-msg-' + id);
+      if (msg) {
+        msg.textContent = 'No broker connection is configured on this dashboard — informational only, per its standing "no auto-execution" rule. No order was placed. To act on this idea, enter these parameters manually in your OctaFX MT4/MT5 terminal.';
+        msg.classList.add('show');
+      }
+    };
+  }
+
+  function renderAll(){
+    var settingsEl = document.getElementById('rm-engine-status');
+    var settings;
+    try {
+      settings = getSettings();
+    } catch (e) {
+      if (settingsEl) { settingsEl.textContent = 'Settings unreadable — engine paused'; settingsEl.style.color = '#f87171'; }
+      return;
+    }
+
+    var cumulativeHeat = 0;
+    var evaluatedCount = 0;
+    var anyError = false;
+
+    riskSignals.forEach(function(signal){
+      var dec = decimalsFor(signal.id);
+      try {
+        var result = process_post_signal_risk(signal, settings, cumulativeHeat);
+        cumulativeHeat = result.newHeat;
+        evaluatedCount++;
+
+        var badge   = document.getElementById('rc-badge-' + signal.id);
+        var noteEl  = document.getElementById('rc-note-' + signal.id);
+        var reasonEl= document.getElementById('rc-reason-' + signal.id);
+        var execBtn = document.getElementById('rc-exec-' + signal.id);
+        var sizeEl  = document.getElementById('rc-size-' + signal.id);
+        var stopEl  = document.getElementById('rc-stop-' + signal.id);
+        var tpEl    = document.getElementById('rc-tp-' + signal.id);
+        var heatEl  = document.getElementById('rc-heat-' + signal.id);
+
+        if (sizeEl) {
+          var lotInfo = toLots(signal, result.positionSizeUnits);
+          sizeEl.textContent = fmt(lotInfo.lots, 2) + ' lots (≈$' + fmt(result.riskDollars, 2) + ' at risk)';
+          sizeEl.title = lotInfo.assumption;
+        }
+        if (stopEl) stopEl.textContent = fmt(result.stop, dec) + (result.dynamicStopUsed ? ' — dynamic (0.5% buffer, no predefined stop)' : ' — from signal');
+        if (tpEl)   tpEl.textContent   = fmt(result.tp, dec) + ' (' + result.finalRR.toFixed(2) + 'R)' + (result.dynamicTPUsed ? ' — dynamic, extended to meet your Min R:R' : ' — from signal');
+        if (heatEl) heatEl.textContent = result.newHeat.toFixed(2) + '% of ' + (isFinite(settings.maxHeat) ? settings.maxHeat.toFixed(1) : '–') + '% cap';
+
+        var lotNote = signal.assetClass === 'index'
+          ? 'Lot size assumes ≈$1/point per 1.0 lot on NAS100 — confirm your OctaFX contract spec before entering.'
+          : 'Lot size converted to standard 100,000-unit lots at the current price — round to your broker\'s minimum lot step (often 0.01) before entering.';
+
+        if (result.approved) {
+          if (badge) { badge.textContent = '✓ APPROVED'; badge.className = 'rc-badge approved'; }
+          if (execBtn) execBtn.disabled = false;
+          if (reasonEl) reasonEl.style.display = 'none';
+          if (noteEl) noteEl.textContent = 'Passes position sizing, minimum R:R, portfolio heat, and daily drawdown checks against your current settings. ' + lotNote;
+        } else {
+          if (badge) { badge.textContent = '✗ BLOCKED'; badge.className = 'rc-badge blocked'; }
+          if (execBtn) execBtn.disabled = true;
+          if (reasonEl) { reasonEl.style.display = 'block'; reasonEl.textContent = 'Blocked: ' + result.reasons.join(' · '); }
+          if (noteEl) noteEl.textContent = 'Sizing shown for reference only — this trade fails one or more of your risk limits below. ' + lotNote;
+        }
+
+        wireExecuteButton(signal.id);
+
+      } catch (err) {
+        anyError = true;
+        var card = document.getElementById('riskcard-' + signal.id);
+        if (card) {
+          card.innerHTML =
+            '<div class="riskcard-head"><div class="riskcard-title">🛡️ RISK MANAGEMENT EVALUATION</div>' +
+            '<span class="rc-badge blocked">✗ ENGINE ERROR</span></div>' +
+            '<div class="rc-error">Risk engine unavailable for ' + signal.symbol + ' (' +
+            (err && err.message ? err.message : 'calculation error') +
+            '). This does not affect the signal or trade idea above — those are shown as originally generated.</div>';
+        }
+      }
+    });
+
+    var countEl = document.getElementById('rm-count');
+    var totalEl = document.getElementById('rm-totalheat');
+    var barEl   = document.getElementById('rm-heatbar');
+    if (countEl) countEl.textContent = evaluatedCount + ' / ' + riskSignals.length;
+    if (totalEl) totalEl.textContent = cumulativeHeat.toFixed(2) + '%';
+    if (barEl) {
+      var pct = settings.maxHeat > 0 ? Math.min(100, (cumulativeHeat / settings.maxHeat) * 100) : 0;
+      barEl.style.width = pct + '%';
+    }
+    if (settingsEl) {
+      if (anyError) { settingsEl.textContent = 'Engine error on 1+ signals — see affected card(s) below'; settingsEl.style.color = '#f87171'; }
+      else { settingsEl.textContent = 'Engine OK'; settingsEl.style.color = '#4ade80'; }
+    }
+  }
+
+  function safeRenderAll(){
+    // Outer safety net: even if renderAll() throws unexpectedly,
+    // the static signal cards above remain fully intact and visible.
+    try {
+      renderAll();
+    } catch (e) {
+      var statusEl = document.getElementById('rm-engine-status');
+      if (statusEl) { statusEl.textContent = 'Risk engine failed to run — signals above are unaffected'; statusEl.style.color = '#f87171'; }
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    ['rm-capital','rm-riskpct','rm-minrr','rm-maxheat','rm-maxdd','rm-ddused'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('input', safeRenderAll);
+    });
+    safeRenderAll();
+  });
+})();
+</script>
+
+</body>
+</html>
