@@ -237,6 +237,7 @@
   .rc-badge{border-radius:999px;padding:5px 12px;font-size:11px;font-weight:800;letter-spacing:.03em;}
   .rc-badge.approved{background:var(--bull-bg);color:var(--bull-text);}
   .rc-badge.blocked{background:var(--bear-bg);color:var(--bear-text);}
+  .rc-badge.pending{background:var(--neu-bg);color:var(--neu-text);}
   .rc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
   @media(max-width:760px){.rc-grid{grid-template-columns:repeat(2,1fr);}}
   .rc-cell{background:#fff;border:1px solid var(--line);border-radius:8px;padding:9px 10px;}
@@ -790,8 +791,16 @@
     }
     var finalRR = Math.abs(tp - signal.entry) / riskPerUnit;
 
-    if (!isFinite(settings.capital) || settings.capital <= 0) throw new Error('Invalid account size');
-    if (!isFinite(settings.riskPct) || settings.riskPct <= 0) throw new Error('Invalid risk-per-trade %');
+    if (!isFinite(settings.capital) || settings.capital <= 0) {
+      var capErr = new Error('Enter your Account Size (USD) above to calculate position sizing');
+      capErr.awaitingInput = true;
+      throw capErr;
+    }
+    if (!isFinite(settings.riskPct) || settings.riskPct <= 0) {
+      var riskErr = new Error('Enter a Risk Per Trade % greater than 0 above to calculate position sizing');
+      riskErr.awaitingInput = true;
+      throw riskErr;
+    }
 
     // 3) Position sizing: Size = (Account Capital * Risk%) / (Entry - Stop)
     var riskDollars = settings.capital * (settings.riskPct / 100);
@@ -842,6 +851,7 @@
     var cumulativeHeat = 0;
     var evaluatedCount = 0;
     var anyError = false;
+    var anyAwaitingInput = false;
 
     riskSignals.forEach(function(signal){
       var dec = decimalsFor(signal.id);
@@ -887,15 +897,26 @@
         wireExecuteButton(signal.id);
 
       } catch (err) {
-        anyError = true;
         var card = document.getElementById('riskcard-' + signal.id);
-        if (card) {
-          card.innerHTML =
-            '<div class="riskcard-head"><div class="riskcard-title">🛡️ RISK MANAGEMENT EVALUATION</div>' +
-            '<span class="rc-badge blocked">✗ ENGINE ERROR</span></div>' +
-            '<div class="rc-error">Risk engine unavailable for ' + signal.symbol + ' (' +
-            (err && err.message ? err.message : 'calculation error') +
-            '). This does not affect the signal or trade idea above — those are shown as originally generated.</div>';
+        if (err && err.awaitingInput) {
+          anyAwaitingInput = true;
+          if (card) {
+            card.innerHTML =
+              '<div class="riskcard-head"><div class="riskcard-title">🛡️ RISK MANAGEMENT EVALUATION</div>' +
+              '<span class="rc-badge pending">AWAITING INPUT</span></div>' +
+              '<div class="rc-note">' + err.message +
+              '. This does not affect the signal or trade idea above — those are shown as originally generated. Fill in the Risk Management Engine settings above to see sizing for ' + signal.symbol + '.</div>';
+          }
+        } else {
+          anyError = true;
+          if (card) {
+            card.innerHTML =
+              '<div class="riskcard-head"><div class="riskcard-title">🛡️ RISK MANAGEMENT EVALUATION</div>' +
+              '<span class="rc-badge blocked">✗ ENGINE ERROR</span></div>' +
+              '<div class="rc-error">Risk engine unavailable for ' + signal.symbol + ' (' +
+              (err && err.message ? err.message : 'calculation error') +
+              '). This does not affect the signal or trade idea above — those are shown as originally generated.</div>';
+          }
         }
       }
     });
@@ -911,6 +932,7 @@
     }
     if (settingsEl) {
       if (anyError) { settingsEl.textContent = 'Engine error on 1+ signals — see affected card(s) below'; settingsEl.style.color = '#f87171'; }
+      else if (anyAwaitingInput) { settingsEl.textContent = 'Awaiting your Account Size / Risk Per Trade inputs above'; settingsEl.style.color = '#fbbf24'; }
       else { settingsEl.textContent = 'Engine OK'; settingsEl.style.color = '#4ade80'; }
     }
   }
